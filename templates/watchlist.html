@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchlist Management - BidMaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-hammer"></i> BidMaster
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="/auctions">All Auctions</a>
+                <a class="nav-link" href="/users">Users</a>
+                <a class="nav-link" href="/bids">Bids</a>
+                <a class="nav-link active" href="/watchlist">Watchlist</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="container my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1><i class="bi bi-bookmark-heart text-primary"></i> Watchlist Management</h1>
+                <p class="text-muted">Monitor user interest and auction popularity</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <span class="badge bg-warning fs-6">Total Watches: {{ watchlist|length }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watchlist Table -->
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Watchlist Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-dark mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Watch ID</th>
+                                <th>User</th>
+                                <th>Auction</th>
+                                <th>Current Bid</th>
+                                <th>Added Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for watch in watchlist %}
+                            <tr>
+                                <td><strong>#{{ watch.id }}</strong></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                            {{ watch.user_name.split()[0][0] }}{{ watch.user_name.split()[-1][0] if watch.user_name.split()|length > 1 else '' }}
+                                        </div>
+                                        <span>{{ watch.user_name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="bi bi-eye-fill text-info"></i>
+                                        </div>
+                                        <div>
+                                            <strong>{{ watch.auction_title }}</strong>
+                                            <small class="text-muted d-block">Auction ID: {{ watch.auction_id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong class="text-success">${{ "{:,.2f}".format(watch.current_bid) if watch.current_bid else "No bids" }}</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ watch.created_at.strftime('%m/%d/%Y %I:%M %p') if watch.created_at else 'N/A' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">Watching</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-primary" title="View Auction">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" title="Remove Watch">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" title="Notify User">
+                                            <i class="bi bi-bell"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Auctions -->
+    <div class="container my-5">
+        <h3 class="mb-4">Most Watched Auctions</h3>
+        <div class="row">
+            {% set auction_counts = {} %}
+            {% for watch in watchlist %}
+                {% if watch.auction_title in auction_counts %}
+                    {% set _ = auction_counts.update({watch.auction_title: auction_counts[watch.auction_title] + 1}) %}
+                {% else %}
+                    {% set _ = auction_counts.update({watch.auction_title: 1}) %}
+                {% endif %}
+            {% endfor %}
+            
+            {% for auction_title, count in auction_counts.items()[:6] %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ auction_title }}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-warning">{{ count }} watchers</span>
+                            <small class="text-muted">Popular</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-primary">
+                    <div class="card-body">
+                        <i class="bi bi-bookmark-heart display-4"></i>
+                        <h3 class="mt-2">{{ watchlist|length }}</h3>
+                        <p class="mb-0">Total Watches</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-success">
+                    <div class="card-body">
+                        <i class="bi bi-people display-4"></i>
+                        <h3 class="mt-2">{{ watchlist|map(attribute='user_name')|unique|list|length }}</h3>
+                        <p class="mb-0">Active Watchers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-info">
+                    <div class="card-body">
+                        <i class="bi bi-star display-4"></i>
+                        <h3 class="mt-2">{{ watchlist|map(attribute='auction_title')|unique|list|length }}</h3>
+                        <p class="mb-0">Watched Auctions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-warning">
+                    <div class="card-body">
+                        <i class="bi bi-graph-up display-4"></i>
+                        <h3 class="mt-2">
+                            {% if watchlist %}
+                                {{ "%.1f"|format(watchlist|length / watchlist|map(attribute='auction_title')|unique|list|length) }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h3>
+                        <p class="mb-0">Avg per Auction</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

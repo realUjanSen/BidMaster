@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BidMaster - Premium Online Auctions</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">    <!-- Custom Navigation -->
+    <nav class="custom-navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <a href="/" class="brand-link">
+                        <i class="bi bi-hammer"></i>
+                        <span class="brand-text">BidMaster</span>
+                    </a>
+                </div>
+                
+                <div class="navbar-menu" id="navbarMenu">
+                    <a href="/" class="nav-link active">
+                        <i class="bi bi-house-door"></i>
+                        <span>Home</span>
+                    </a>
+                    {% if current_user %}
+                        <a href="/my-auctions" class="nav-link">My Auctions</a>
+                        <a href="/admin" class="nav-link" style="display: none;">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Admin</span>
+                        </a>
+                        <a href="/logout" class="nav-link">Logout</a>
+                    {% else %}
+                        <a href="/login" class="nav-link login-btn">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            <span>Login</span>
+                        </a>
+                        <a href="/register" class="nav-link register-btn">
+                            <i class="bi bi-person-plus"></i>
+                            <span>Register</span>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="mobile-toggle" id="mobileToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <style>
+        .custom-navbar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            flex-shrink: 0;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .brand-link:hover {
+            color: #4fc3f7;
+            transform: scale(1.05);
+        }
+
+        .brand-link i {
+            margin-right: 0.5rem;
+            font-size: 1.8rem;
+            color: #4fc3f7;
+        }
+
+        .brand-text {
+            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(79, 195, 247, 0.3);
+        }
+
+        .nav-link i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .login-btn {
+            border: 1px solid #4fc3f7;
+            color: #4fc3f7;
+        }
+
+        .login-btn:hover {
+            background: #4fc3f7;
+            color: #fff;
+        }
+
+        .register-btn {
+            background: linear-gradient(135deg, #66bb6a, #4caf50);
+            color: #fff;
+        }
+
+        .register-btn:hover {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .mobile-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-toggle span {
+            width: 25px;
+            height: 3px;
+            background: #fff;
+            margin: 3px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-menu {
+                position: fixed;
+                top: 80px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 80px);
+                background: rgba(26, 26, 46, 0.95);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                padding-top: 2rem;
+                transition: left 0.3s ease;
+                gap: 1rem;
+            }
+
+            .navbar-menu.active {
+                left: 0;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .mobile-toggle.active span:nth-child(1) {
+                transform: rotate(-45deg) translate(-5px, 6px);
+            }
+
+            .mobile-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .mobile-toggle.active span:nth-child(3) {
+                transform: rotate(45deg) translate(-5px, -6px);
+            }
+
+            .nav-link {
+                width: 200px;
+                justify-content: center;
+            }
+        }
+    </style>
+
+    <!-- Hero Banner -->
+    <div class="bg-gradient text-white py-5" style="background: linear-gradient(135deg, #343a40 0%, #495057 100%);">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">Welcome to BidMaster</h1>
+            <p class="lead mb-4">Discover unique items, place your bids, and win amazing deals!</p>
+            {% if not current_user %}
+                <a href="/register" class="btn btn-light btn-lg me-3">Get Started</a>
+                <a href="/login" class="btn btn-outline-light btn-lg">Login</a>
+            {% else %}
+                <a href="/my-auctions" class="btn btn-light btn-lg me-3">My Auctions</a>
+                <a href="/logout" class="btn btn-outline-light btn-lg">Logout</a>
+            {% endif %}
+            <a href="#featured-auctions" class="btn btn-outline-light btn-lg">Browse Auctions</a>
+        </div>
+    </div>    <!-- Platform Statistics -->
+    <div class="container my-5">
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <i class="bi bi-hammer fs-1 mb-3"></i>
+                        <h3 class="card-title">{{ statistics.total_auctions }}</h3>
+                        <p class="card-text">Total Auctions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <i class="bi bi-people fs-1 mb-3"></i>
+                        <h3 class="card-title">{{ statistics.total_users }}</h3>
+                        <p class="card-text">Active Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body">
+                        <i class="bi bi-graph-up fs-1 mb-3"></i>
+                        <h3 class="card-title">{{ statistics.total_bids }}</h3>
+                        <p class="card-text">Total Bids</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <i class="bi bi-currency-dollar fs-1 mb-3"></i>
+                        <h3 class="card-title">${{ "{:,.0f}".format(statistics.total_value) }}</h3>
+                        <p class="card-text">Total Value</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Auctions -->
+    <div class="container my-5" id="featured-auctions">
+        <h2 class="text-center mb-5">
+            <i class="bi bi-star-fill text-warning"></i> Featured Auctions
+        </h2>
+        {% if featured_auctions %}
+        <div class="row">
+            {% for auction in featured_auctions %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ auction.image_url }}" class="card-img-top" alt="{{ auction.title }}" style="height: 250px; object-fit: cover;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title">{{ auction.title }}</h5>
+                            <span class="badge bg-warning text-dark">FEATURED</span>
+                        </div>
+                        <p class="card-text text-muted">{{ auction.description[:100] }}{% if auction.description|length > 100 %}...{% endif %}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="text-primary">${{ "{:,.0f}".format(auction.current_bid) }}</strong>
+                                <small class="text-muted d-block">{{ auction.bid_count }} bids</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">by {{ auction.seller_name }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="/auction/{{ auction.id }}" class="btn btn-primary w-100">View Auction</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-info-circle fs-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No featured auctions available</h4>
+            <p class="text-muted">Check back later for exciting new auctions!</p>
+        </div>
+        {% endif %}
+    </div>
+
+
+
+    <!-- Call to Action Section -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto text-center">
+                <h2 class="mb-4">Ready to Start Bidding?</h2>
+                <p class="lead text-muted mb-4">Join thousands of users who trust BidMaster for their online auction needs. Create an account today and start bidding on amazing items!</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="/auctions" class="btn btn-primary btn-lg me-md-2">
+                        <i class="bi bi-grid-3x3-gap"></i> Browse All Auctions
+                    </a>
+                    <a href="/create-auction" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Create Auction
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="container my-5">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <div class="mb-3">
+                    <i class="bi bi-person-plus-fill fs-1 text-primary"></i>
+                </div>
+                <h4>1. Sign Up</h4>
+                <p class="text-muted">Create your free account and get started in minutes</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="mb-3">
+                    <i class="bi bi-search fs-1 text-success"></i>
+                </div>
+                <h4>2. Browse & Bid</h4>
+                <p class="text-muted">Find items you love and place competitive bids</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="mb-3">
+                    <i class="bi bi-trophy-fill fs-1 text-warning"></i>
+                </div>
+                <h4>3. Win & Enjoy</h4>
+                <p class="text-muted">Win auctions and enjoy your new treasures</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-hammer"></i> BidMaster</h5>
+                    <p class="text-muted">Your trusted online auction platform</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="text-muted">&copy; 2025 BidMaster. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

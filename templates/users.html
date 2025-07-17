@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Management - BidMaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-hammer"></i> BidMaster
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="/auctions">All Auctions</a>
+                <a class="nav-link active" href="/users">Users</a>
+                <a class="nav-link" href="/bids">Bids</a>
+                <a class="nav-link" href="/watchlist">Watchlist</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="container my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1><i class="bi bi-people text-primary"></i> Users Management</h1>
+                <p class="text-muted">View and manage all registered users</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <span class="badge bg-info fs-6">Total Users: {{ users|length }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Registered Users</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-dark mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Password</th>
+                                <th>Joined Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td><strong>#{{ user.id }}</strong></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                            {{ user.name.split()[0][0] }}{{ user.name.split()[-1][0] if user.name.split()|length > 1 else '' }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ user.name }}</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <i class="bi bi-envelope text-muted"></i>
+                                    {{ user.email }}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="password-field" style="font-family: monospace;">{{ user.password }}</span>
+                                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ user.password }}')" title="Copy Password">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Active</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-primary" title="View Profile">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning" title="Edit User">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" title="Send Message">
+                                            <i class="bi bi-envelope"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-primary">
+                    <div class="card-body">
+                        <i class="bi bi-people display-4"></i>
+                        <h3 class="mt-2">{{ users|length }}</h3>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-success">
+                    <div class="card-body">
+                        <i class="bi bi-person-check display-4"></i>
+                        <h3 class="mt-2">{{ users|length }}</h3>
+                        <p class="mb-0">Active Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-dark border-info">
+                    <div class="card-body">
+                        <i class="bi bi-calendar-plus display-4 text-info"></i>
+                        <h3 class="mt-2 text-info">
+                            {{ users|selectattr('created_at')|selectattr('created_at', 'greaterthan', (now() - timedelta(days=30)))|list|length if users else 0 }}
+                        </h3>
+                        <p class="mb-0 text-light">New This Month</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center bg-dark border-warning">
+                    <div class="card-body">
+                        <i class="bi bi-star display-4 text-warning"></i>
+                        <h3 class="mt-2 text-warning">4.8</h3>
+                        <p class="mb-0 text-light">Avg Rating</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success toast
+                const toast = document.createElement('div');
+                toast.className = 'toast position-fixed top-0 end-0 m-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `
+                    <div class="toast-header bg-success text-white">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong class="me-auto">Success</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        Password copied to clipboard!
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                // Remove toast after it's hidden
+                toast.addEventListener('hidden.bs.toast', function () {
+                    document.body.removeChild(toast);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
