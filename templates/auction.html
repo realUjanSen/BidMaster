@@ -7,188 +7,59 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body class="bg-dark text-light">    <!-- Custom Navigation -->
-    <nav class="custom-navbar">
+<body class="bg-dark text-light">    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <div class="navbar-content">
-                <div class="navbar-brand">
-                    <a href="/" class="brand-link">
-                        <i class="bi bi-hammer"></i>
-                        <span class="brand-text">BidMaster</span>
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-hammer"></i> BidMaster
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/">
+                        <i class="bi bi-house-door"></i> Home
                     </a>
-                </div>
-                
-                <div class="navbar-menu" id="navbarMenu">
-                    <a href="/" class="nav-link">
-                        <i class="bi bi-house-door"></i>
-                        <span>Home</span>
+                    <a class="nav-link" href="/auctions">
+                        <i class="bi bi-grid-3x3-gap"></i> All Auctions
                     </a>
-                    <a href="/my-auctions" class="nav-link">
-                        <i class="bi bi-person-circle"></i>
-                        <span>My Auctions</span>
-                    </a>
-                    <a href="/create-auction" class="nav-link">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Create Auction</span>
-                    </a>
-                    <a href="/login" class="nav-link login-btn">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                        <span>Login</span>
-                    </a>
-                </div>
-                
-                <div class="mobile-toggle" id="mobileToggle">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    {% if current_user %}
+                        <a class="nav-link" href="/my-auctions">
+                            <i class="bi bi-person-circle"></i> My Auctions
+                        </a>
+                        <a class="nav-link" href="/create-auction">
+                            <i class="bi bi-plus-circle"></i> Create Auction
+                        </a>
+                        <a class="nav-link" href="/bids">
+                            <i class="bi bi-clock-history"></i> My Bids
+                        </a>
+                        <a class="nav-link" href="/admin" style="opacity: 0; pointer-events: all; position: absolute; left: -9999px;">
+                            <i class="bi bi-shield-check"></i> Admin
+                        </a>
+                        <a class="nav-link" href="/balance">
+                            <i class="bi bi-wallet2"></i> ${{ "%.2f"|format(current_user.balance) }}
+                        </a>
+                        <a class="nav-link" href="/logout">
+                            <i class="bi bi-box-arrow-in-right"></i> Logout
+                        </a>
+                    {% else %}
+                        <a class="nav-link" href="/login">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                        <a class="nav-link" href="/register">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </nav>
 
-    <style>
-        .custom-navbar {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-        }
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;"></div>
 
-        .navbar-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 0;
-        }
-
-        .navbar-brand {
-            flex-shrink: 0;
-        }
-
-        .brand-link {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .brand-link:hover {
-            color: #4fc3f7;
-            transform: scale(1.05);
-        }
-
-        .brand-link i {
-            margin-right: 0.5rem;
-            font-size: 1.8rem;
-            color: #4fc3f7;
-        }
-
-        .brand-text {
-            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .navbar-menu {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1.25rem;
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.8);
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .nav-link.active {
-            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(79, 195, 247, 0.3);
-        }
-
-        .nav-link i {
-            margin-right: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .login-btn {
-            border: 1px solid #4fc3f7;
-            color: #4fc3f7;
-        }
-
-        .login-btn:hover {
-            background: #4fc3f7;
-            color: #fff;
-        }
-
-        .mobile-toggle {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 0.5rem;
-        }
-
-        .mobile-toggle span {
-            width: 25px;
-            height: 3px;
-            background: #fff;
-            margin: 3px 0;
-            transition: 0.3s;
-            border-radius: 2px;
-        }
-
-        @media (max-width: 768px) {
-            .navbar-menu {
-                position: fixed;
-                top: 80px;
-                left: -100%;
-                width: 100%;
-                height: calc(100vh - 80px);
-                background: rgba(26, 26, 46, 0.95);
-                backdrop-filter: blur(20px);
-                flex-direction: column;
-                justify-content: flex-start;
-                align-items: center;
-                padding-top: 2rem;
-                transition: left 0.3s ease;
-                gap: 1rem;
-            }
-
-            .navbar-menu.active {
-                left: 0;
-            }
-
-            .mobile-toggle {
-                display: flex;
-            }
-
-            .nav-link {
-                width: 200px;
-                justify-content: center;
-            }
-        }
-    </style>    <!-- Breadcrumb -->
+    <!-- Breadcrumb -->
     <div class="container mt-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -206,7 +77,8 @@
             <div class="col-lg-6">
                 <div class="auction-gallery mb-3">
                     <div class="main-image-container">
-                        <img id="mainImage" src="{{ auction.image_url }}" class="main-image rounded" alt="{{ auction.title }}">
+                        <img id="mainImage" src="{{ auction.image_url }}" class="main-image rounded" alt="{{ auction.title }}" 
+                             onerror="handleImageError(this)">>
                     </div>
                 </div>
             </div>
@@ -370,7 +242,8 @@
         .main-image {
             width: 100%;
             height: 400px;
-            object-fit: cover;
+            object-fit: contain;
+            background-color: #2d3748;
             transition: transform 0.3s ease;
         }
 
@@ -462,6 +335,70 @@
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
     
     <script>
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.setAttribute('data-bs-autohide', 'true');
+            toast.setAttribute('data-bs-delay', '5000');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Initialize and show toast
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remove toast element after it's hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                toast.remove();
+            });
+        }
+
+        // Image loading error handler
+        function handleImageError(img) {
+            console.log('Image failed to load:', img.src);
+            // Try alternative placeholder service
+            const fallbackUrl = 'https://via.placeholder.com/600x400/495057/ffffff?text=Golden+Statue+Image+Unavailable';
+            if (img.src !== fallbackUrl) {
+                img.src = fallbackUrl;
+                img.style.filter = 'brightness(0.8)';
+                img.style.border = '2px dashed #6c757d';
+                img.title = 'Original image could not be loaded';
+            }
+        }
+
+        // Initialize image error handling when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                // Add additional error handling
+                mainImage.addEventListener('error', function() {
+                    handleImageError(this);
+                });
+                
+                // Check if image is already broken
+                if (mainImage.complete && mainImage.naturalWidth === 0) {
+                    handleImageError(mainImage);
+                }
+            }
+        });
+
         document.getElementById('bidForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -469,7 +406,7 @@
             const auctionId = {{ auction.id }};
             
             if (!bidAmount || bidAmount <= {{ auction.current_bid }}) {
-                alert('Please enter a valid bid amount higher than the current bid.');
+                showToast('Please enter a valid bid amount higher than the current bid.', 'error');
                 return;
             }
             
@@ -486,15 +423,25 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
-                    location.reload(); // Refresh to show new bid
+                    showToast(data.message, 'success');
+                    // Update the balance in navbar if available
+                    if (data.new_balance) {
+                        const balanceLink = document.querySelector('a[href="/balance"]');
+                        if (balanceLink) {
+                            balanceLink.innerHTML = `<i class="bi bi-wallet2"></i> $${data.new_balance.toFixed(2)}`;
+                        }
+                    }
+                    // Refresh page after a short delay to show new bid
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
                 } else {
-                    alert('Error: ' + data.message);
+                    showToast(data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error placing bid. Please try again.');
+                showToast('Error placing bid. Please try again.', 'error');
             });
         });
     </script>

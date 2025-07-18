@@ -14,22 +14,45 @@
             <a class="navbar-brand" href="/">
                 <i class="bi bi-hammer"></i> BidMaster
             </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/">Home</a>
-                <a class="nav-link active" href="/auctions">All Auctions</a>
-                {% if current_user %}
-                    <a class="nav-link" href="/my-auctions">My Auctions</a>
-                    <a class="nav-link" href="/admin" style="display: none;">
-                        <i class="bi bi-shield-check"></i> Admin
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/">
+                        <i class="bi bi-house-door"></i> Home
                     </a>
-                    <a class="nav-link" href="/balance">
-                        <i class="bi bi-wallet2"></i> ${{ "%.2f"|format(current_user.balance) }}
+                    <a class="nav-link active" href="/auctions">
+                        <i class="bi bi-grid-3x3-gap"></i> All Auctions
                     </a>
-                    <a class="nav-link" href="/logout">Logout</a>
-                {% else %}
-                    <a class="nav-link" href="/login">Login</a>
-                    <a class="nav-link" href="/register">Register</a>
-                {% endif %}
+                    {% if current_user %}
+                        <a class="nav-link" href="/my-auctions">
+                            <i class="bi bi-person-circle"></i> My Auctions
+                        </a>
+                        <a class="nav-link" href="/create-auction">
+                            <i class="bi bi-plus-circle"></i> Create Auction
+                        </a>
+                        <a class="nav-link" href="/bids">
+                            <i class="bi bi-clock-history"></i> My Bids
+                        </a>
+                        <a class="nav-link" href="/admin" style="opacity: 0; pointer-events: all; position: absolute; left: -9999px;">
+                            <i class="bi bi-shield-check"></i> Admin
+                        </a>
+                        <a class="nav-link" href="/balance">
+                            <i class="bi bi-wallet2"></i> ${{ "%.2f"|format(current_user.balance) }}
+                        </a>
+                        <a class="nav-link" href="/logout">
+                            <i class="bi bi-box-arrow-in-right"></i> Logout
+                        </a>
+                    {% else %}
+                        <a class="nav-link" href="/login">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                        <a class="nav-link" href="/register">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>

@@ -144,10 +144,10 @@ def update_user_balance(user_id, amount, operation='add'):
             print(f"Current balance: ${current_balance:.2f}")
             
             if operation == 'add':
-                new_balance = current_balance + amount
+                new_balance = float(current_balance) + float(amount)
                 cursor.execute("UPDATE users SET balance = balance + %s WHERE id = %s", (amount, user_id))
             else:
-                new_balance = current_balance - amount
+                new_balance = float(current_balance) - float(amount)
                 if new_balance < 0:
                     print(f"Warning: Balance would be negative: ${new_balance:.2f}")
                 cursor.execute("UPDATE users SET balance = balance - %s WHERE id = %s", (amount, user_id))
@@ -928,6 +928,8 @@ def place_bid():
     print(f"Bid attempt by user: {current_user['name']} (ID: {current_user['id']})")
     print(f"User balance: ${current_user['balance']:.2f}")
     
+    conn = None
+    
     try:
         auction_id = request.json.get('auction_id')
         bid_amount_str = request.json.get('bid_amount')
@@ -943,17 +945,16 @@ def place_bid():
             return jsonify({'success': False, 'message': 'Invalid bid amount'}), 400
         
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
         
         # Get auction details
         print(f"Getting auction details for ID: {auction_id}")
-        cursor.execute("SELECT * FROM auctions WHERE id = %s", (auction_id,))
-        auction = cursor.fetchone()
+        cursor1 = conn.cursor(dictionary=True)
+        cursor1.execute("SELECT * FROM auctions WHERE id = %s", (auction_id,))
+        auction = cursor1.fetchone()
+        cursor1.close()
         
         if not auction:
             print("Auction not found")
-            cursor.close()
-            conn.close()
             return jsonify({'success': False, 'message': 'Auction not found'}), 404
         
         print(f"Auction found: '{auction['title']}'")
@@ -965,93 +966,112 @@ def place_bid():
         # Check if auction is active
         if auction['status'] != 'active':
             print("Auction is not active")
-            cursor.close()
-            conn.close()
             return jsonify({'success': False, 'message': 'This auction is no longer active'}), 400
         
         # Check if auction has ended
         if auction['end_time'] and auction['end_time'] < datetime.now():
             print("Auction has ended")
-            cursor.close()
-            conn.close()
             return jsonify({'success': False, 'message': 'This auction has ended'}), 400
         
         # Check if bid amount is higher than current bid
         current_bid = auction['current_bid'] or auction['starting_price']
         if bid_amount <= current_bid:
             print(f"Bid amount ${bid_amount:.2f} is not higher than current bid ${current_bid:.2f}")
-            cursor.close()
-            conn.close()
             return jsonify({'success': False, 'message': f'Your bid must be higher than the current bid of ${current_bid:.2f}'}), 400
         
         # Check if user has enough balance
-        if current_user['balance'] < bid_amount:
-            needed = bid_amount - current_user['balance']
+        if float(current_user['balance']) < float(bid_amount):
+            needed = float(bid_amount) - float(current_user['balance'])
             print(f"Insufficient balance. Need ${needed:.2f} more")
-            cursor.close()
-            conn.close()
             return jsonify({'success': False, 'message': f'Insufficient balance. You need ${needed:.2f} more. Visit the Balance page to add funds.'}), 400
         
         # Check if user is not bidding on their own auction
         if auction['seller_id'] == current_user['id']:
             print("User trying to bid on their own auction")
-            cursor.close()
-            conn.close()
             return jsonify({'success': False, 'message': 'You cannot bid on your own auction'}), 400
         
         # Refund previous bidder if exists
         print("Checking for previous bidder to refund...")
-        cursor.execute("""
+        cursor2 = conn.cursor(dictionary=True)
+        cursor2.execute("""
             SELECT bidder_id, bid_amount FROM bids 
             WHERE auction_id = %s AND bid_amount = %s
+            LIMIT 1
         """, (auction_id, current_bid))
-        previous_bid = cursor.fetchone()
+        previous_bid = cursor2.fetchone()
+        cursor2.close()
         
         if previous_bid and previous_bid['bidder_id'] != current_user['id']:
             print(f"Refunding previous bidder {previous_bid['bidder_id']} amount ${previous_bid['bid_amount']:.2f}")
-            # Refund previous highest bidder
-            balance_updated = update_user_balance(previous_bid['bidder_id'], previous_bid['bid_amount'], 'add')
-            if balance_updated:
-                add_balance_transaction(previous_bid['bidder_id'], 'refund', previous_bid['bid_amount'], 
-                                      f'Refund: Outbid on "{auction["title"]}"', auction_id)
+            
+            # Get current balance of previous bidder
+            cursor3 = conn.cursor()
+            cursor3.execute("SELECT balance FROM users WHERE id = %s", (previous_bid['bidder_id'],))
+            prev_balance_result = cursor3.fetchone()
+            cursor3.close()
+            
+            if prev_balance_result:
+                prev_current_balance = prev_balance_result[0]
+                prev_new_balance = float(prev_current_balance) + float(previous_bid['bid_amount'])
+                
+                # Update previous bidder's balance
+                cursor4 = conn.cursor()
+                cursor4.execute("UPDATE users SET balance = %s WHERE id = %s", 
+                             (prev_new_balance, previous_bid['bidder_id']))
+                cursor4.close()
+                
+                # Add refund transaction for previous bidder
+                cursor5 = conn.cursor()
+                cursor5.execute("""
+                    INSERT INTO balance_transactions (user_id, transaction_type, amount, description, auction_id)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (previous_bid['bidder_id'], 'refund', previous_bid['bid_amount'], 
+                      f'Refund: Outbid on "{auction["title"]}"', auction_id))
+                cursor5.close()
+                
                 print("Previous bidder refunded successfully")
             else:
-                print("Failed to refund previous bidder")
+                print("Previous bidder not found, skipping refund")
         else:
             print("No previous bidder to refund")
         
         # Deduct bid amount from current user's balance
         print(f"Deducting ${bid_amount:.2f} from user balance...")
-        balance_updated = update_user_balance(current_user['id'], bid_amount, 'subtract')
-        if not balance_updated:
-            print("Failed to update user balance")
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'message': 'Failed to update balance. Please try again.'}), 500
+        new_balance = float(current_user['balance']) - float(bid_amount)
+        cursor6 = conn.cursor()
+        cursor6.execute("UPDATE users SET balance = %s WHERE id = %s", 
+                      (new_balance, current_user['id']))
+        cursor6.close()
         
+        # Add bid transaction for current user
         print("Adding bid transaction...")
-        transaction_added = add_balance_transaction(current_user['id'], 'bid', bid_amount, 
-                                                  f'Bid placed on "{auction["title"]}"', auction_id)
-        if not transaction_added:
-            print("Warning: Failed to add bid transaction")
+        cursor7 = conn.cursor()
+        cursor7.execute("""
+            INSERT INTO balance_transactions (user_id, transaction_type, amount, description, auction_id)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (current_user['id'], 'bid', bid_amount, 
+              f'Bid placed on "{auction["title"]}"', auction_id))
+        cursor7.close()
         
         # Insert new bid
         print("Inserting new bid record...")
-        cursor.execute("INSERT INTO bids (auction_id, bidder_id, bid_amount) VALUES (%s, %s, %s)",
+        cursor8 = conn.cursor()
+        cursor8.execute("INSERT INTO bids (auction_id, bidder_id, bid_amount) VALUES (%s, %s, %s)",
                       (auction_id, current_user['id'], bid_amount))
-        bid_id = cursor.lastrowid
+        bid_id = cursor8.lastrowid
+        cursor8.close()
         print(f"Bid record created with ID: {bid_id}")
         
         # Update auction current bid and bid count
         print("Updating auction current bid...")
-        cursor.execute("UPDATE auctions SET current_bid = %s, total_bids = total_bids + 1 WHERE id = %s",
+        cursor9 = conn.cursor()
+        cursor9.execute("UPDATE auctions SET current_bid = %s, total_bids = total_bids + 1 WHERE id = %s",
                       (bid_amount, auction_id))
+        cursor9.close()
         
+        # Commit all changes
         conn.commit()
-        cursor.close()
-        conn.close()
         
-        new_balance = current_user['balance'] - bid_amount
         print(f"Bid placed successfully! New balance: ${new_balance:.2f}")
         print("=== PLACE BID DEBUG END (success) ===")
         
@@ -1066,12 +1086,19 @@ def place_bid():
         return jsonify({'success': False, 'message': 'Invalid bid amount'}), 400
     except mysql.connector.Error as e:
         print(f"MySQL error in bid: {e}")
+        if conn:
+            conn.rollback()
         return jsonify({'success': False, 'message': f'Database error: {str(e)}'}), 500
     except Exception as e:
         print(f"Unexpected bid error: {e}")
         import traceback
         traceback.print_exc()
+        if conn:
+            conn.rollback()
         return jsonify({'success': False, 'message': f'Failed to place bid: {str(e)}'}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/add-to-watchlist', methods=['POST'])
 @login_required
@@ -1146,11 +1173,11 @@ def recharge_balance():
         print("Balance updated successfully, adding transaction record...")
         
         # Add transaction record
-        transaction_added = add_balance_transaction(current_user['id'], 'recharge', amount, f'Free balance recharge of ${amount:.2f}')
+        transaction_added = add_balance_transaction(current_user['id'], 'recharge', abs(float(amount)), f'Free balance recharge of ${amount:.2f}')
         if not transaction_added:
             print("Warning: Failed to add transaction record")
         
-        new_balance = current_user['balance'] + amount
+        new_balance = float(current_user['balance']) + float(amount)
         print(f"New balance: ${new_balance:.2f}")
         
         print("=== BALANCE RECHARGE DEBUG END (success) ===")
