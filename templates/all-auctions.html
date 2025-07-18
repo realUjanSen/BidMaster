@@ -179,7 +179,7 @@
 
                     <!-- Auction Image -->
                     <img src="{{ auction.image_url or 'https://via.placeholder.com/300x200/6c757d/ffffff?text=' + auction.title|replace(' ', '+') }}" 
-                         class="card-img-top" alt="{{ auction.title }}" style="height: 200px; object-fit: cover;">
+                         class="card-img-top" alt="{{ auction.title }}" style="height: 200px; object-fit: contain; background-color: #212529;">
                     
                     <!-- Auction Details -->
                     <div class="card-body">
@@ -433,7 +433,7 @@
                 })
             })
             .then(response => response.json())
-            .then(data => {
+            .then data => {
                 if (data.success) {
                     alert('Added to watchlist successfully!');
                 } else {

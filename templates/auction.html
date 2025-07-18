@@ -78,7 +78,7 @@
                 <div class="auction-gallery mb-3">
                     <div class="main-image-container">
                         <img id="mainImage" src="{{ auction.image_url }}" class="main-image rounded" alt="{{ auction.title }}" 
-                             onerror="handleImageError(this)">>
+                             onerror="handleImageError(this)">
                     </div>
                 </div>
             </div>
@@ -242,8 +242,8 @@
         .main-image {
             width: 100%;
             height: 400px;
-            object-fit: contain;
-            background-color: #2d3748;
+            object-fit: contain !important;
+            background-color: #212529;
             transition: transform 0.3s ease;
         }
 
