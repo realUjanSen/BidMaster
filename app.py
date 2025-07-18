@@ -668,6 +668,22 @@ def my_auctions():
     sold_auctions = [a for a in user_auctions if a['status'] == 'ended' and a['winner_id']]
     draft_auctions = [a for a in user_auctions if a['status'] == 'draft']
     
+    # Add winner information to sold auctions
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        for auction in sold_auctions:
+            if auction['winner_id']:
+                cursor.execute("SELECT name FROM users WHERE id = %s", (auction['winner_id'],))
+                winner = cursor.fetchone()
+                auction['winner_name'] = winner['name'] if winner else 'Unknown'
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Error fetching winner info: {e}")
+        for auction in sold_auctions:
+            auction['winner_name'] = 'Unknown'
+    
     return render_template('my-auctions.html', 
                          active_auctions=active_auctions,
                          sold_auctions=sold_auctions,
@@ -909,8 +925,11 @@ def debug_auctions():
 @app.route('/bids')
 def all_bids():
     """Admin page to view all bids"""
+    from datetime import datetime
+    current_user = get_current_user()
     bids = get_all_bids()
-    return render_template('bids.html', bids=bids)
+    today = datetime.now()
+    return render_template('bids.html', bids=bids, current_user=current_user, today=today)
 
 @app.route('/watchlist')
 def all_watchlist():

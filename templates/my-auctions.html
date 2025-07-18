@@ -126,80 +126,56 @@
         <h3 class="mb-3">Featured Auctions</h3>
         <div id="auctionCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
             <div class="carousel-indicators">
-                <button type="button" data-bs-target="#auctionCarousel" data-bs-slide-to="0" class="active"></button>
-                <button type="button" data-bs-target="#auctionCarousel" data-bs-slide-to="1"></button>
-                <button type="button" data-bs-target="#auctionCarousel" data-bs-slide-to="2"></button>
+                {% for auction in active_auctions[:5] %}
+                <button type="button" data-bs-target="#auctionCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active"{% endif %}></button>
+                {% endfor %}
             </div>
             <div class="carousel-inner">
+                {% for auction in active_auctions[:5] %}
+                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card bg-gradient" style="background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);">
+                                <div class="card-body text-center text-white p-5">
+                                    <div class="mb-3">
+                                        <img src="{{ auction.image_url }}" 
+                                             alt="{{ auction.title }}" 
+                                             class="img-fluid rounded"
+                                             style="width: 200px; height: 200px; object-fit: contain; background-color: #212529;">
+                                    </div>
+                                    <h2>{{ auction.title }}</h2>
+                                    <p class="lead">{{ auction.description[:100] }}{% if auction.description|length > 100 %}...{% endif %}</p>
+                                    <div class="d-flex justify-content-around mt-4">
+                                        <div>
+                                            <h4>${{ "%.2f"|format(auction.current_bid) }}</h4>
+                                            <small>Current Bid</small>
+                                        </div>
+                                        <div>
+                                            <h4>{{ auction.time_left }}</h4>
+                                            <small>Time Left</small>
+                                        </div>
+                                    </div>
+                                    <a href="{{ url_for('auction_details', auction_id=auction.id) }}" class="btn btn-light btn-lg mt-3">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
                 <div class="carousel-item active">
                     <div class="row justify-content-center">
                         <div class="col-md-8">
                             <div class="card bg-gradient" style="background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);">
                                 <div class="card-body text-center text-white p-5">
-                                    <h2>Vintage Ford Mustang 1969</h2>
-                                    <p class="lead">Classic American muscle car in pristine condition</p>
-                                    <div class="d-flex justify-content-around mt-4">
-                                        <div>
-                                            <h4>$45,000</h4>
-                                            <small>Current Bid</small>
-                                        </div>
-                                        <div>
-                                            <h4>3d 12h</h4>
-                                            <small>Time Left</small>
-                                        </div>
-                                    </div>
-                                    <a href="{{ url_for('auction_details', auction_id=1) }}" class="btn btn-light btn-lg mt-3">Place Bid</a>
+                                    <h2>No Active Auctions</h2>
+                                    <p class="lead">You don't have any active auctions at the moment.</p>
+                                    <a href="{{ url_for('create_auction') }}" class="btn btn-light btn-lg mt-3">Create Your First Auction</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center">
-                        <div class="col-md-8">
-                            <div class="card bg-gradient" style="background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);">
-                                <div class="card-body text-center text-white p-5">
-                                    <h2>Vintage Abstract Art</h2>
-                                    <p class="lead">Original 1960s abstract painting by renowned artist</p>
-                                    <div class="d-flex justify-content-around mt-4">
-                                        <div>
-                                            <h4>$8,500</h4>
-                                            <small>Current Bid</small>
-                                        </div>
-                                        <div>
-                                            <h4>1d 8h</h4>
-                                            <small>Time Left</small>
-                                        </div>
-                                    </div>
-                                    <a href="{{ url_for('auction_details', auction_id=2) }}" class="btn btn-light btn-lg mt-3">Place Bid</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center">
-                        <div class="col-md-8">
-                            <div class="card bg-gradient" style="background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);">
-                                <div class="card-body text-center text-white p-5">
-                                    <h2>Rolex Submariner</h2>
-                                    <p class="lead">Luxury Swiss timepiece in excellent condition</p>
-                                    <div class="d-flex justify-content-around mt-4">
-                                        <div>
-                                            <h4>$12,800</h4>
-                                            <small>Current Bid</small>
-                                        </div>
-                                        <div>
-                                            <h4>4d 15h</h4>
-                                            <small>Time Left</small>
-                                        </div>
-                                    </div>
-                                    <a href="{{ url_for('auction_details', auction_id=3) }}" class="btn btn-light btn-lg mt-3">Place Bid</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
             <button class="carousel-control-prev" type="button" data-bs-target="#auctionCarousel" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon"></span>
@@ -340,42 +316,34 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for auction in sold_auctions %}
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="https://via.placeholder.com/50x50/6610f2/ffffff?text=Art" class="rounded me-3" alt="Art">
+                                        <img src="{{ auction.image_url }}" class="rounded me-3" alt="{{ auction.title }}" style="width: 50px; height: 50px; object-fit: contain; background-color: #212529;">
                                         <div>
-                                            <strong>Abstract Painting</strong>
-                                            <small class="text-muted d-block">Modern art piece</small>
+                                            <strong>{{ auction.title }}</strong>
+                                            <small class="text-muted d-block">{{ auction.description[:50] }}{% if auction.description|length > 50 %}...{% endif %}</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td><strong class="text-success">$2,100</strong></td>
-                                <td>art_collector99</td>
-                                <td>Jan 15, 2025</td>
-                                <td><span class="badge bg-success">Paid & Shipped</span></td>
+                                <td><strong class="text-success">${{ "{:,.2f}".format(auction.current_bid or auction.starting_price) }}</strong></td>
+                                <td>{{ auction.winner_name if auction.winner_name else 'N/A' }}</td>
+                                <td>{{ auction.end_time.strftime('%b %d, %Y') if auction.end_time else 'N/A' }}</td>
+                                <td><span class="badge bg-success">Sold</span></td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary">View Details</button>
+                                    <a href="/auction/{{ auction.id }}" class="btn btn-sm btn-outline-primary">View Details</a>
                                 </td>
                             </tr>
+                            {% else %}
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://via.placeholder.com/50x50/ffc107/000000?text=Watch" class="rounded me-3" alt="Watch">
-                                        <div>
-                                            <strong>Omega Speedmaster</strong>
-                                            <small class="text-muted d-block">Professional moonwatch</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td><strong class="text-success">$3,450</strong></td>
-                                <td>watch_enthusiast</td>
-                                <td>Jan 10, 2025</td>
-                                <td><span class="badge bg-warning text-dark">Payment Pending</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary">View Details</button>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-info-circle fs-1 text-muted mb-3"></i>
+                                    <h4 class="text-muted">No sold auctions yet</h4>
+                                    <p class="text-muted">Your successful auctions will appear here.</p>
                                 </td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -440,15 +408,73 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
+    <footer class="bg-dark text-white py-5 mt-5">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5><i class="bi bi-hammer"></i> BidMaster</h5>
-                    <p class="text-muted">Your trusted online auction platform</p>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="mb-3"><i class="bi bi-hammer text-primary"></i> BidMaster</h5>
+                    <p class="text-muted">Your trusted online auction platform where you can buy and sell unique items with confidence.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-light fs-5"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-light fs-5"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-light fs-5"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-light fs-5"><i class="bi bi-linkedin"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-6 text-end">
-                    <p class="text-muted">&copy; 2025 BidMaster. All rights reserved.</p>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-muted text-decoration-none">Home</a></li>
+                        <li><a href="/auctions" class="text-muted text-decoration-none">All Auctions</a></li>
+                        <li><a href="/create-auction" class="text-muted text-decoration-none">Create Auction</a></li>
+                        <li><a href="/how-it-works" class="text-muted text-decoration-none">How It Works</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="mb-3">Categories</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/category/art" class="text-muted text-decoration-none">Art</a></li>
+                        <li><a href="/category/antiques" class="text-muted text-decoration-none">Antiques</a></li>
+                        <li><a href="/category/jewelry" class="text-muted text-decoration-none">Jewelry</a></li>
+                        <li><a href="/category/electronics" class="text-muted text-decoration-none">Electronics</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/help" class="text-muted text-decoration-none">Help Center</a></li>
+                        <li><a href="/contact" class="text-muted text-decoration-none">Contact Us</a></li>
+                        <li><a href="/faq" class="text-muted text-decoration-none">FAQ</a></li>
+                        <li><a href="/feedback" class="text-muted text-decoration-none">Feedback</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/privacy" class="text-muted text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="/terms" class="text-muted text-decoration-none">Terms of Service</a></li>
+                        <li><a href="/security" class="text-muted text-decoration-none">Security</a></li>
+                        <li><a href="/cookies" class="text-muted text-decoration-none">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2025 BidMaster. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-shield-check text-success"></i> Secure Transactions
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-clock text-info"></i> 24/7 Support
+                    </p>
                 </div>
             </div>
         </div>
